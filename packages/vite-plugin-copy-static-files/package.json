@@ -1,0 +1,50 @@
+{
+  "name": "@foundryvtt/vite-plugin-copy-static-files",
+  "version": "0.1.0",
+  "description": "Copy static files",
+  "license": "MIT",
+  "keywords": [
+    "vite",
+    "vite-plugin",
+    "copy",
+    "static",
+    "files"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch src",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
+    "typecheck": "tsc --noEmit"
+  },
+  "packageManager": "pnpm@10.6.0",
+  "peerDependencies": {
+    "vite": ">=6.0.0"
+  },
+  "dependencies": {
+    "@rollup/pluginutils": "5.1.4",
+    "@types/crypto-js": "^4.2.2",
+    "@types/fs-extra": "^11.0.4",
+    "@types/minimatch": "^5.1.2",
+    "@types/node": "^22.13.10",
+    "@types/throttle-debounce": "^5.0.2",
+    "chokidar": "^4.0.3",
+    "fast-glob": "^3.3.3",
+    "fs-extra": "^11.3.0",
+    "minimatch": "^10.0.1",
+    "mrmime": "^2.0.1",
+    "picocolors": "^1.1.1",
+    "throttle-debounce": "^5.0.2"
+  },
+  "devDependencies": {
+    "tsup": "^8.4.0",
+    "typescript": "5.8.2",
+    "vite": "6.2.1"
+  }
+}

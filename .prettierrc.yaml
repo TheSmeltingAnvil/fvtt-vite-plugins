@@ -1,0 +1,9 @@
+semi: false
+singleQuote: false
+tabWidth: 2
+trailingComma: "all"
+overrides:
+  - files: ["*.yml", "*.yaml"]
+    options:
+      bracketSameLine: true
+      printWidth: 120

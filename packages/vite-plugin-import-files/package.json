@@ -1,0 +1,43 @@
+{
+  "name": "@foundryvtt/vite-plugin-import-files",
+  "version": "0.1.0",
+  "description": "Import files as JS objects",
+  "license": "MIT",
+  "keywords": [
+    "vite",
+    "vite-plugin",
+    "json",
+    "yaml",
+    "yml"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch src",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
+    "typecheck": "tsc --noEmit"
+  },
+  "packageManager": "pnpm@10.6.0",
+  "peerDependencies": {
+    "vite": ">=6.0.0"
+  },
+  "dependencies": {
+    "@rollup/pluginutils": "5.1.4",
+    "@types/fs-extra": "^11.0.4",
+    "fs-extra": "^11.3.0",
+    "js-yaml": "4.1.0",
+    "tosource": "2.0.0-alpha.3"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "4.0.9",
+    "tsup": "^8.4.0",
+    "typescript": "5.8.2",
+    "vite": "6.2.1"
+  }
+}

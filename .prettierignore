@@ -1,0 +1,8 @@
+_build
+coverage
+dist
+node_modules
+static
+types
+pnpm-lock.yaml
+pnpm-workspace.yaml

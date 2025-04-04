@@ -1,0 +1,38 @@
+{
+  "name": "@foundryvtt/vite-plugin-replace-vars",
+  "version": "0.1.0",
+  "description": "Replace variables in files",
+  "license": "MIT",
+  "keywords": [
+    "vite",
+    "vite-plugin",
+    "replace",
+    "variables"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch src",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
+    "typecheck": "tsc --noEmit"
+  },
+  "packageManager": "pnpm@10.6.0",
+  "peerDependencies": {
+    "vite": ">=6.0.0"
+  },
+  "dependencies": {
+    "@rollup/pluginutils": "5.1.4",
+    "@types/fs-extra": "^11.0.4"
+  },
+  "devDependencies": {
+    "tsup": "^8.4.0",
+    "typescript": "5.8.2",
+    "vite": "6.2.1"
+  }
+}
