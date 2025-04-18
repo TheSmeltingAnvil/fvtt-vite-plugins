@@ -26,10 +26,10 @@
     "vite": ">=6.0.0"
   },
   "dependencies": {
-    "@foundryvtt/vite-plugin-copy-static-files": "workspace:*",
-    "@foundryvtt/vite-plugin-create-file": "workspace:*",
-    "@foundryvtt/vite-plugin-import-files": "workspace:*",
-    "@foundryvtt/vite-plugin-replace-vars": "workspace:*",
+    "@foundryvtt/vite-plugin-copy-static-files": "github:TheSmeltingAnvil/fvtt-vite-plugins#main&path:/packages/vite-plugin-copy-static-files",
+    "@foundryvtt/vite-plugin-create-file": "github:TheSmeltingAnvil/fvtt-vite-plugins#main&path:/packages/vite-plugin-create-file",
+    "@foundryvtt/vite-plugin-import-files": "github:TheSmeltingAnvil/fvtt-vite-plugins#main&path:/packages/vite-plugin-import-files",
+    "@foundryvtt/vite-plugin-replace-vars": "github:TheSmeltingAnvil/fvtt-vite-plugins#main&path:/packages/vite-plugin-replace-vars",
     "@rollup/pluginutils": "5.1.4",
     "@types/fs-extra": "^11.0.4",
     "@types/js-yaml": "4.0.9",
