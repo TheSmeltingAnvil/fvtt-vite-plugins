@@ -19,6 +19,7 @@ export type TransformOption = TransformFunc<string> | TransformOptionObject
 export interface File {
   src: string | string[]
   dst?: string
+  ignored?: string | string[]
   rename?: string | RenameFunc
   transform?: TransformOption
   overwrite?: boolean | "error"

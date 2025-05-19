@@ -10,7 +10,7 @@ export function copyStaticFiles(options: CopyStaticFilesOptions): Vite.Plugin[] 
 
   function resolveOptions(options: CopyStaticFilesOptions): ResolvedCopyStaticFilesOptions {
     const build = options.build ?? {}
-    build.hook = build.hook || "writeBundle"
+    build.hook = build.hook ?? "writeBundle"
     const resolved = {
       build: build as { hook: string },
       files: (() => {

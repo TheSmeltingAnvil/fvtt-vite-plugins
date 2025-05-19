@@ -61,14 +61,17 @@ export async function foundryvtt(options?: FoundryVttOptions): Promise<Vite.Plug
         },
         {
           src: ["**/*.json"],
+          ignored: ["package.json", "tsconfig.json"],
           transform: replaceFileVars,
         },
         {
           src: ["**/*.yml", "**/*.yaml"],
+          ignored: ["foundryconfig.*.yml", "foundryconfig.*.yaml"],
           rename: "*.json",
           transform: replaceFileVars,
         },
       ],
+      ignored: ["node_modules/**", "packs/**", "public/**", "static/**", "dist/**"],
     }
 
     if (options === undefined || options === true) return defaultOptions

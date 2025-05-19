@@ -58,25 +58,28 @@ var import_minimatch = require("minimatch");
 var import_node_crypto = __toESM(require("crypto"));
 var import_node_path = __toESM(require("path"));
 function collectFiles(srcDir, options) {
-  var _a, _b;
-  const globOptions = {
+  var _a, _b, _c, _d;
+  const globalGlobOptions = {
     cwd: srcDir,
-    dot: true,
+    dot: false,
     onlyFiles: true,
     unique: true
   };
   const files = [];
   for (const file of options.files) {
     if (typeof file === "string") {
-      for (const found of glob.globSync(file, globOptions))
+      for (const found of glob.globSync(file, globalGlobOptions))
         files.push({ src: found, dst: import_node_path.default.dirname(found), overwrite: true });
     } else {
       const of = file;
+      const globOptions = __spreadValues({}, globalGlobOptions);
+      if (of.ignored) globOptions.ignore = Array.isArray(of.ignored) ? of.ignored : [of.ignored];
+      (_b = globOptions.ignore) == null ? void 0 : _b.push(...(_a = options.ignored) != null ? _a : []);
       for (const found of glob.globSync(of.src, globOptions))
         files.push(__spreadProps(__spreadValues({}, of), {
           src: found,
-          dst: import_node_path.default.join((_a = of.dst) != null ? _a : "", import_node_path.default.dirname(found)),
-          overwrite: (_b = of.overwrite) != null ? _b : true
+          dst: import_node_path.default.join((_c = of.dst) != null ? _c : "", import_node_path.default.dirname(found)),
+          overwrite: (_d = of.overwrite) != null ? _d : true
         }));
     }
   }
@@ -377,9 +380,9 @@ function copyStaticFiles(options) {
   const resolvedOptions = resolveOptions(options);
   return [serve(resolvedOptions), build(resolvedOptions)];
   function resolveOptions(options2) {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f;
     const build2 = (_a = options2.build) != null ? _a : {};
-    build2.hook = build2.hook || "writeBundle";
+    build2.hook = (_b = build2.hook) != null ? _b : "writeBundle";
     const resolved = {
       build: build2,
       files: (() => {
@@ -393,8 +396,8 @@ function copyStaticFiles(options) {
       ignored: options2.ignored,
       root: options2.root,
       watch: {
-        options: (_c = (_b = options2.watch) == null ? void 0 : _b.options) != null ? _c : {},
-        reloadPageOnChange: (_e = (_d = options2.watch) == null ? void 0 : _d.reloadPageOnChange) != null ? _e : false
+        options: (_d = (_c = options2.watch) == null ? void 0 : _c.options) != null ? _d : {},
+        reloadPageOnChange: (_f = (_e = options2.watch) == null ? void 0 : _e.reloadPageOnChange) != null ? _f : false
       }
     };
     if (typeof options2.ignored === "string" && options2.ignored === "all") resolved.watch.options.ignored = ["**/*"];

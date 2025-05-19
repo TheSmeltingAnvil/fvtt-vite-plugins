@@ -14,6 +14,7 @@ type TransformOption = TransformFunc<string> | TransformOptionObject;
 interface File {
     src: string | string[];
     dst?: string;
+    ignored?: string | string[];
     rename?: string | RenameFunc;
     transform?: TransformOption;
     overwrite?: boolean | "error";

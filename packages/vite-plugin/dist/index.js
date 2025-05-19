@@ -102,14 +102,17 @@ import './src/index.ts';
         },
         {
           src: ["**/*.json"],
+          ignored: ["package.json", "tsconfig.json"],
           transform: replaceFileVars
         },
         {
           src: ["**/*.yml", "**/*.yaml"],
+          ignored: ["foundryconfig.*.yml", "foundryconfig.*.yaml"],
           rename: "*.json",
           transform: replaceFileVars
         }
-      ]
+      ],
+      ignored: ["node_modules/**", "packs/**", "public/**", "static/**", "dist/**"]
     };
     if (options2 === void 0 || options2 === true) return defaultOptions;
     if (options2 === false) {

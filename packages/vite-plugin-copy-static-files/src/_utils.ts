@@ -18,19 +18,22 @@ interface File {
 }
 
 export function collectFiles(srcDir: string, options: ResolvedCopyStaticFilesOptions): File[] {
-  const globOptions = {
+  const globalGlobOptions: glob.Options = {
     cwd: srcDir,
-    dot: true,
+    dot: false,
     onlyFiles: true,
     unique: true,
   }
   const files: File[] = []
   for (const file of options.files) {
     if (typeof file === "string") {
-      for (const found of glob.globSync(file, globOptions))
+      for (const found of glob.globSync(file, globalGlobOptions))
         files.push({ src: found, dst: path.dirname(found), overwrite: true })
     } else {
-      const of = file as OriginalFile
+      const of = file
+      const globOptions: glob.Options = { ...globalGlobOptions }
+      if (of.ignored) globOptions.ignore = Array.isArray(of.ignored) ? of.ignored : [of.ignored]
+      globOptions.ignore?.push(...options.ignored ?? [])
       for (const found of glob.globSync(of.src, globOptions))
         files.push({
           ...of,
