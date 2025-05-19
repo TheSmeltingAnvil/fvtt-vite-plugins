@@ -148,11 +148,11 @@ function build(options) {
       config = configResolved;
     },
     [options.build.hook]: async () => {
-      var _a;
+      var _a, _b;
       if (output) return;
       output = true;
-      const files = collectFiles(config.root, options);
-      await copyFiles((_a = options.root) != null ? _a : config.root, config.build.outDir, files);
+      const files = collectFiles((_a = options.root) != null ? _a : config.root, options);
+      await copyFiles((_b = options.root) != null ? _b : config.root, config.build.outDir, files);
     }
   };
 }

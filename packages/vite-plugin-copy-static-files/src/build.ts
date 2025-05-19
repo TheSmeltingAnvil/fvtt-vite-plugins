@@ -18,7 +18,7 @@ export function build(options: ResolvedCopyStaticFilesOptions): Vite.Plugin {
     [options.build.hook]: async () => {
       if (output) return
       output = true
-      const files = collectFiles(config.root, options)
+      const files = collectFiles(options.root ?? config.root, options)
       await copyFiles(options.root ?? config.root, config.build.outDir, files)
     },
   }
