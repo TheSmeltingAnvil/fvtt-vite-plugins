@@ -28,8 +28,8 @@ export async function foundryvtt(options?: FoundryVttOptions): Promise<Vite.Plug
       contents: `<h1>${message}</h1>\n`,
     }),
     createFile({
-      name: "index.js",
-      contents: `/* ${message} */\nimport './src/index.ts';\n`,
+      name: "index.mjs",
+      contents: `/* ${message} */\nimport './index.ts';\n`,
     }),
     createFile({
       name: "styles.css",
@@ -63,7 +63,7 @@ export async function foundryvtt(options?: FoundryVttOptions): Promise<Vite.Plug
         {
           root: ".",
           src: ["**/*.json"],
-          ignored: ["package.json", "tsconfig.json", "src/**"],
+          ignored: ["package.json", "tsconfig.json", "tsconfig.*.json", "src/**"],
           transform: replaceFileVars,
         },
         {
@@ -127,15 +127,34 @@ export function provide(): Vite.Plugin {
     configureServer: async (server: Vite.ViteDevServer) => {
       const { middlewares } = server
       return () => {
+        middlewares.use(provideDist(config))
         middlewares.use(provideSources(config))
       }
     },
   }
 
+  function provideDist(config: Vite.ResolvedConfig): Vite.Connect.NextHandleFunction {
+    return async (req: Vite.Connect.IncomingMessage, res: ServerResponse, next: Vite.Connect.NextFunction) => {
+      try {
+        let pathname = decodeURI(req.originalUrl ?? "")
+        pathname = `${config.build.outDir}/${pathname.replace(config.base, "")}`
+
+        if (!(await fse.exists(pathname))) return next()
+
+        const file = await fse.stat(pathname)
+        sendStatic(req, res, pathname, file)
+      } catch (e) {
+        if (e instanceof Error) return next(e)
+
+        throw e
+      }
+    }
+  }
+
   function provideSources(config: Vite.ResolvedConfig): Vite.Connect.NextHandleFunction {
     return async (req: Vite.Connect.IncomingMessage, res: ServerResponse, next: Vite.Connect.NextFunction) => {
       try {
-        let pathname = decodeURI(req.originalUrl || "")
+        let pathname = decodeURI(req.originalUrl ?? "")
         pathname = `${config.root}/${pathname.replace(config.base, "")}`
 
         if (!(await fse.exists(pathname))) return next()

@@ -68,9 +68,9 @@ async function foundryvtt(options) {
 `
     }),
     (0, import_vite_plugin_create_file.createFile)({
-      name: "index.js",
+      name: "index.mjs",
       contents: `/* ${message} */
-import './src/index.ts';
+import './index.ts';
 `
     }),
     (0, import_vite_plugin_create_file.createFile)({
@@ -104,7 +104,7 @@ import './src/index.ts';
         {
           root: ".",
           src: ["**/*.json"],
-          ignored: ["package.json", "tsconfig.json", "src/**"],
+          ignored: ["package.json", "tsconfig.json", "tsconfig.*.json", "src/**"],
           transform: replaceFileVars
         },
         {
@@ -160,14 +160,31 @@ function provide() {
     configureServer: async (server) => {
       const { middlewares } = server;
       return () => {
+        middlewares.use(provideDist(config));
         middlewares.use(provideSources(config));
       };
     }
   };
+  function provideDist(config2) {
+    return async (req, res, next) => {
+      var _a;
+      try {
+        let pathname = decodeURI((_a = req.originalUrl) != null ? _a : "");
+        pathname = `${config2.build.outDir}/${pathname.replace(config2.base, "")}`;
+        if (!await fse.exists(pathname)) return next();
+        const file = await fse.stat(pathname);
+        sendStatic(req, res, pathname, file);
+      } catch (e) {
+        if (e instanceof Error) return next(e);
+        throw e;
+      }
+    };
+  }
   function provideSources(config2) {
     return async (req, res, next) => {
+      var _a;
       try {
-        let pathname = decodeURI(req.originalUrl || "");
+        let pathname = decodeURI((_a = req.originalUrl) != null ? _a : "");
         pathname = `${config2.root}/${pathname.replace(config2.base, "")}`;
         if (!await fse.exists(pathname)) return next();
         const file = await fse.stat(pathname);
