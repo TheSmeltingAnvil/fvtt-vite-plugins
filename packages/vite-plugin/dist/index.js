@@ -97,17 +97,31 @@ import './src/index.ts';
     const defaultOptions = {
       files: [
         {
+          root: "src",
           src: "**/*.hbs",
           serve: { reloadOnChange: "reload:template" }
         },
         {
+          root: ".",
           src: ["**/*.json"],
-          ignored: ["package.json", "tsconfig.json"],
+          ignored: ["package.json", "tsconfig.json", "src/**"],
           transform: replaceFileVars
         },
         {
+          root: "src",
+          src: ["**/*.json"],
+          transform: replaceFileVars
+        },
+        {
+          root: ".",
           src: ["**/*.yml", "**/*.yaml"],
-          ignored: ["foundryconfig.*.yml", "foundryconfig.*.yaml"],
+          ignored: ["foundryconfig.*.yml", "foundryconfig.*.yaml", "src/**", "packs/**"],
+          rename: "*.json",
+          transform: replaceFileVars
+        },
+        {
+          root: "src",
+          src: ["**/*.yml", "**/*.yaml"],
           rename: "*.json",
           transform: replaceFileVars
         }

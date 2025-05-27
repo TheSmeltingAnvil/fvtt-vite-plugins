@@ -4,7 +4,7 @@ import { minimatch } from "minimatch"
 import crypto from "node:crypto"
 import path from "node:path"
 import { ResolvedCopyStaticFilesOptions } from "./_types"
-import { File as OriginalFile, RenameFunc, TransformOption, TransformOptionObject } from "./types"
+import { RenameFunc, TransformOption, TransformOptionObject } from "./types"
 
 interface File {
   src: string
@@ -32,6 +32,7 @@ export function collectFiles(srcDir: string, options: ResolvedCopyStaticFilesOpt
     } else {
       const of = file
       const globOptions: glob.Options = { ...globalGlobOptions }
+      if (of.root) globOptions.cwd = path.isAbsolute(of.root) ? of.root : path.resolve(srcDir, of.root)
       if (of.ignored) globOptions.ignore = Array.isArray(of.ignored) ? of.ignored : [of.ignored]
       globOptions.ignore?.push(...options.ignored ?? [])
       for (const found of glob.globSync(of.src, globOptions))

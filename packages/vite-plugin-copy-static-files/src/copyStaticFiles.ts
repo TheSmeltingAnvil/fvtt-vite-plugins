@@ -13,14 +13,7 @@ export function copyStaticFiles(options: CopyStaticFilesOptions): Vite.Plugin[] 
     build.hook = build.hook ?? "writeBundle"
     const resolved = {
       build: build as { hook: string },
-      files: (() => {
-        switch (options.ignored) {
-          case "all":
-            return []
-          default:
-            return options.files
-        }
-      })(),
+      files: options.ignored === "all" ? [] : options.files,
       ignored: options.ignored,
       root: options.root,
       watch: {

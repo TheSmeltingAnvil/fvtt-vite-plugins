@@ -6,17 +6,18 @@ export type TransformFunc<T extends string | Buffer> = (content: T, filename: st
 
 export type TransformOptionObject =
   | {
-      encoding: Omit<BufferEncoding, "binary">
-      handler: TransformFunc<string>
-    }
+    encoding: Omit<BufferEncoding, "binary">
+    handler: TransformFunc<string>
+  }
   | {
-      encoding: "buffer"
-      handler: TransformFunc<Buffer>
-    }
+    encoding: "buffer"
+    handler: TransformFunc<Buffer>
+  }
 
 export type TransformOption = TransformFunc<string> | TransformOptionObject
 
 export interface File {
+  root?: string
   src: string | string[]
   dst?: string
   ignored?: string | string[]

@@ -73,6 +73,7 @@ function collectFiles(srcDir, options) {
     } else {
       const of = file;
       const globOptions = __spreadValues({}, globalGlobOptions);
+      if (of.root) globOptions.cwd = import_node_path.default.isAbsolute(of.root) ? of.root : import_node_path.default.resolve(srcDir, of.root);
       if (of.ignored) globOptions.ignore = Array.isArray(of.ignored) ? of.ignored : [of.ignored];
       (_b = globOptions.ignore) == null ? void 0 : _b.push(...(_a = options.ignored) != null ? _a : []);
       for (const found of glob.globSync(of.src, globOptions))
@@ -385,14 +386,7 @@ function copyStaticFiles(options) {
     build2.hook = (_b = build2.hook) != null ? _b : "writeBundle";
     const resolved = {
       build: build2,
-      files: (() => {
-        switch (options2.ignored) {
-          case "all":
-            return [];
-          default:
-            return options2.files;
-        }
-      })(),
+      files: options2.ignored === "all" ? [] : options2.files,
       ignored: options2.ignored,
       root: options2.root,
       watch: {

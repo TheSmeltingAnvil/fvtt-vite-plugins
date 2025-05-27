@@ -12,6 +12,7 @@ type TransformOptionObject = {
 };
 type TransformOption = TransformFunc<string> | TransformOptionObject;
 interface File {
+    root?: string;
     src: string | string[];
     dst?: string;
     ignored?: string | string[];

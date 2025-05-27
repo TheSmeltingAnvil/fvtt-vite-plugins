@@ -121,7 +121,7 @@ function serveStaticFiles(
     const rootDir = config.root
     const srcDir = path.resolve(rootDir, options.root ?? "")
     try {
-      let pathname = decodeURI(req.originalUrl || "")
+      let pathname = decodeURI(req.originalUrl ?? "")
       pathname = pathname.replace(config.base, "/")
       const data = getLocalFileData(srcDir, files, pathname)
       if (!data || data.stats.isDirectory()) return return404(res, next)
