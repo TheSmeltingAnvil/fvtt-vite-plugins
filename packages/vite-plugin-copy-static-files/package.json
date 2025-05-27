@@ -32,7 +32,7 @@
     "@types/crypto-js": "^4.2.2",
     "@types/fs-extra": "^11.0.4",
     "@types/minimatch": "^5.1.2",
-    "@types/node": "^22.13.10",
+    "@types/node": "^22.15.23",
     "@types/throttle-debounce": "^5.0.2",
     "chokidar": "^4.0.3",
     "fast-glob": "^3.3.3",
@@ -43,8 +43,8 @@
     "throttle-debounce": "^5.0.2"
   },
   "devDependencies": {
-    "tsup": "^8.4.0",
-    "typescript": "5.8.2",
-    "vite": "6.2.1"
+    "tsup": "^8.5.0",
+    "typescript": "5.8.3",
+    "vite": "6.3.5"
   }
 }

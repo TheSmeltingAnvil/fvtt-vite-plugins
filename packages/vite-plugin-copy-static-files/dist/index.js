@@ -252,12 +252,12 @@ function watchFilesForCollection(rootpath, paths, config, options, files, logger
 }
 function serveStaticFiles(config, options, files) {
   return async (req, res, next) => {
-    var _a;
+    var _a, _b;
     const { server } = config;
     const rootDir = config.root;
     const srcDir = import_node_path2.default.resolve(rootDir, (_a = options.root) != null ? _a : "");
     try {
-      let pathname = decodeURI(req.originalUrl || "");
+      let pathname = decodeURI((_b = req.originalUrl) != null ? _b : "");
       pathname = pathname.replace(config.base, "/");
       const data = getLocalFileData(srcDir, files, pathname);
       if (!data || data.stats.isDirectory()) return return404(res, next);
