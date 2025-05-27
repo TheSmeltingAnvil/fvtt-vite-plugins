@@ -42,7 +42,7 @@ export async function foundryvtt(options?: FoundryVttOptions): Promise<Vite.Plug
     importYaml(),
     // Replace variables in files.
     replaceVars({ mappings }),
-    // Provide `src` files.
+    // Provide `dist` files.
     provide(),
   ]
 
@@ -128,7 +128,7 @@ export function provide(): Vite.Plugin {
       const { middlewares } = server
       return () => {
         middlewares.use(provideDist(config))
-        middlewares.use(provideSources(config))
+        //middlewares.use(provideSources(config))
       }
     },
   }
@@ -145,29 +145,28 @@ export function provide(): Vite.Plugin {
         sendStatic(req, res, pathname, file)
       } catch (e) {
         if (e instanceof Error) return next(e)
-
         throw e
       }
     }
   }
 
-  function provideSources(config: Vite.ResolvedConfig): Vite.Connect.NextHandleFunction {
-    return async (req: Vite.Connect.IncomingMessage, res: ServerResponse, next: Vite.Connect.NextFunction) => {
-      try {
-        let pathname = decodeURI(req.originalUrl ?? "")
-        pathname = `${config.root}/${pathname.replace(config.base, "")}`
+  ////function provideSources(config: Vite.ResolvedConfig): Vite.Connect.NextHandleFunction {
+  ////  return async (req: Vite.Connect.IncomingMessage, res: ServerResponse, next: Vite.Connect.NextFunction) => {
+  ////    try {
+  ////      let pathname = decodeURI(req.originalUrl ?? "")
+  ////      pathname = `${config.root}/${pathname.replace(config.base, "")}`
 
-        if (!(await fse.exists(pathname))) return next()
+  ////      if (!(await fse.exists(pathname))) return next()
 
-        const file = await fse.stat(pathname)
-        sendStatic(req, res, pathname, file)
-      } catch (e) {
-        if (e instanceof Error) return next(e)
+  ////      const file = await fse.stat(pathname)
+  ////      sendStatic(req, res, pathname, file)
+  ////    } catch (e) {
+  ////      if (e instanceof Error) return next(e)
 
-        throw e
-      }
-    }
-  }
+  ////      throw e
+  ////    }
+  ////  }
+  ////}
 
   function getStaticHeaders(stats: fse.Stats): OutgoingHttpHeaders {
     return {
@@ -186,8 +185,12 @@ export function provide(): Vite.Plugin {
     }
 
     let code = 200
-    const headers = staticHeaders ////getMergeHeaders(staticHeaders, res);
+    const headers = getMergeHeaders(staticHeaders, res);
     const opts: { start?: number; end?: number } = {}
+
+    if (path.extname(file) === ".mjs" && headers["Content-Type"] !== "text/javascript") {
+      headers["Content-Type"] = "text/javascript"
+    }
 
     if (req.headers.range) {
       code = 206
@@ -215,4 +218,17 @@ export function provide(): Vite.Plugin {
     res.writeHead(code, headers)
     fse.createReadStream(file, opts).pipe(res)
   }
+}
+
+function getMergeHeaders(headers: OutgoingHttpHeaders, res: ServerResponse) {
+  headers = { ...headers }
+  for (const key in headers) {
+    const tmp = res.getHeader(key)
+    if (tmp) headers[key] = tmp
+  }
+
+  const contentTypeHeader = res.getHeader("content-type")
+  if (contentTypeHeader) headers["Content-Type"] = contentTypeHeader
+
+  return headers
 }

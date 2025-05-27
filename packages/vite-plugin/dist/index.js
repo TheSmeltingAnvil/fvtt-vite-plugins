@@ -85,7 +85,7 @@ import './index.ts';
     (0, import_vite_plugin_import_files.importYaml)(),
     // Replace variables in files.
     (0, import_vite_plugin_replace_vars.replaceVars)({ mappings }),
-    // Provide `src` files.
+    // Provide `dist` files.
     provide()
   ];
   async function readFromPackageJson(parent) {
@@ -161,7 +161,6 @@ function provide() {
       const { middlewares } = server;
       return () => {
         middlewares.use(provideDist(config));
-        middlewares.use(provideSources(config));
       };
     }
   };
@@ -171,21 +170,6 @@ function provide() {
       try {
         let pathname = decodeURI((_a = req.originalUrl) != null ? _a : "");
         pathname = `${config2.build.outDir}/${pathname.replace(config2.base, "")}`;
-        if (!await fse.exists(pathname)) return next();
-        const file = await fse.stat(pathname);
-        sendStatic(req, res, pathname, file);
-      } catch (e) {
-        if (e instanceof Error) return next(e);
-        throw e;
-      }
-    };
-  }
-  function provideSources(config2) {
-    return async (req, res, next) => {
-      var _a;
-      try {
-        let pathname = decodeURI((_a = req.originalUrl) != null ? _a : "");
-        pathname = `${config2.root}/${pathname.replace(config2.base, "")}`;
         if (!await fse.exists(pathname)) return next();
         const file = await fse.stat(pathname);
         sendStatic(req, res, pathname, file);
@@ -210,8 +194,11 @@ function provide() {
       return res.end();
     }
     let code = 200;
-    const headers = staticHeaders;
+    const headers = getMergeHeaders(staticHeaders, res);
     const opts = {};
+    if (import_node_path.default.extname(file) === ".mjs" && headers["Content-Type"] !== "text/javascript") {
+      headers["Content-Type"] = "text/javascript";
+    }
     if (req.headers.range) {
       code = 206;
       const [x, y] = req.headers.range.replace("bytes=", "").split("-");
@@ -234,6 +221,16 @@ function provide() {
     res.writeHead(code, headers);
     fse.createReadStream(file, opts).pipe(res);
   }
+}
+function getMergeHeaders(headers, res) {
+  headers = __spreadValues({}, headers);
+  for (const key in headers) {
+    const tmp = res.getHeader(key);
+    if (tmp) headers[key] = tmp;
+  }
+  const contentTypeHeader = res.getHeader("content-type");
+  if (contentTypeHeader) headers["Content-Type"] = contentTypeHeader;
+  return headers;
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
