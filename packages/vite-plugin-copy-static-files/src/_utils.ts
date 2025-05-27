@@ -38,7 +38,7 @@ export function collectFiles(srcDir: string, options: ResolvedCopyStaticFilesOpt
       for (const found of glob.globSync(of.src, globOptions))
         files.push({
           ...of,
-          src: found,
+          src: path.resolve(of.root ?? "", found),
           dst: path.join(of.dst ?? "", path.dirname(found)),
           overwrite: of.overwrite ?? true,
         })
@@ -59,7 +59,7 @@ export async function copyFiles(
   options: Partial<ResolvedCopyStaticFilesOptions> = {},
 ) {
   const resolvedFiles: Promise<ResolvedFile>[] = files.map(async (file: File) => {
-    const resolvedSrc = path.resolve(srcDir, file.src)
+    const resolvedSrc = path.resolve(srcDir, file.root, file.src)
     const { base, dir } = path.parse(resolvedSrc)
     let resolvedDst = path.resolve(dstDir, file.dst)
     const newName = file.rename ? await renameFile(dir, base, file.rename) : base

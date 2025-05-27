@@ -58,7 +58,7 @@ var import_minimatch = require("minimatch");
 var import_node_crypto = __toESM(require("crypto"));
 var import_node_path = __toESM(require("path"));
 function collectFiles(srcDir, options) {
-  var _a, _b, _c, _d;
+  var _a, _b, _c, _d, _e;
   const globalGlobOptions = {
     cwd: srcDir,
     dot: false,
@@ -78,9 +78,9 @@ function collectFiles(srcDir, options) {
       (_b = globOptions.ignore) == null ? void 0 : _b.push(...(_a = options.ignored) != null ? _a : []);
       for (const found of glob.globSync(of.src, globOptions))
         files.push(__spreadProps(__spreadValues({}, of), {
-          src: found,
-          dst: import_node_path.default.join((_c = of.dst) != null ? _c : "", import_node_path.default.dirname(found)),
-          overwrite: (_d = of.overwrite) != null ? _d : true
+          src: import_node_path.default.resolve((_c = of.root) != null ? _c : "", found),
+          dst: import_node_path.default.join((_d = of.dst) != null ? _d : "", import_node_path.default.dirname(found)),
+          overwrite: (_e = of.overwrite) != null ? _e : true
         }));
     }
   }
@@ -88,7 +88,7 @@ function collectFiles(srcDir, options) {
 }
 async function copyFiles(srcDir, dstDir, files, options = {}) {
   const resolvedFiles = files.map(async (file) => {
-    const resolvedSrc = import_node_path.default.resolve(srcDir, file.src);
+    const resolvedSrc = import_node_path.default.resolve(srcDir, file.root, file.src);
     const { base, dir } = import_node_path.default.parse(resolvedSrc);
     let resolvedDst = import_node_path.default.resolve(dstDir, file.dst);
     const newName = file.rename ? await renameFile(dir, base, file.rename) : base;
