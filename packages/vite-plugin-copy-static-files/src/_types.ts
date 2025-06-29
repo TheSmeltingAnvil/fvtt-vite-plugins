@@ -1,27 +1,27 @@
 import { ChokidarOptions } from "chokidar"
-import { File, TransformOption } from "./types"
+import { FileOptions } from "./types"
 
-export interface FileValue {
-  src: string
-  dst: string
+export interface ResolvedFile extends Omit<FileOptions, "dest" | "overwrite" | "root"> {
+  dest: string
   overwrite: boolean | "error"
-  transform?: TransformOption
-  serve?: {
-    reloadOnChange?: string
-  }
+  root: string
 }
-
-export type FileMap = Map<string, FileValue>
 
 export interface ResolvedCopyStaticFilesOptions {
   build: {
     hook: string
   }
-  files: (string | File)[]
-  ignored?: "all" | string[]
+  files: ResolvedFile[]
+  ignore: false | string[] | "all"
   root?: string
   watch: {
-    options?: ChokidarOptions
+    options: ChokidarOptions
     reloadPageOnChange?: boolean
   }
+}
+
+export interface CollectedFile extends ResolvedFile {
+  src: string
+  dst: string
+  url?: string
 }

@@ -25,7 +25,7 @@ importers:
         version: 10.1.5(eslint@9.27.0)
       eslint-js:
         specifier: github:eslint/js
-        version: https://codeload.github.com/eslint/js/tar.gz/b847f35787d4bf2ec68163f45f3e4dc2d209eee8
+        version: https://codeload.github.com/eslint/js/tar.gz/1d39fd2501722cd8ee32de07521ae8c18962f0a6
       eslint-plugin-prettier:
         specifier: ^5.4.0
         version: 5.4.0(eslint-config-prettier@10.1.5(eslint@9.27.0))(eslint@9.27.0)(prettier@3.5.3)
@@ -46,16 +46,16 @@ importers:
     dependencies:
       '@foundryvtt/vite-plugin-copy-static-files':
         specifier: github:TheSmeltingAnvil/fvtt-vite-plugins#main&path:/packages/vite-plugin-copy-static-files
-        version: https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/9d5826a3fdb08c0e45d8f97e049d55f761844ec8#path:/packages/vite-plugin-copy-static-files(rollup@4.41.1)(vite@6.3.5(@types/node@22.15.23))
+        version: https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/e7f85a6e0e982dcadc400a7c5f8e7ca730cf72b7#path:/packages/vite-plugin-copy-static-files(rollup@4.41.1)(vite@6.3.5(@types/node@22.15.23))
       '@foundryvtt/vite-plugin-create-file':
         specifier: github:TheSmeltingAnvil/fvtt-vite-plugins#main&path:/packages/vite-plugin-create-file
-        version: https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/9d5826a3fdb08c0e45d8f97e049d55f761844ec8#path:/packages/vite-plugin-create-file(rollup@4.41.1)(vite@6.3.5(@types/node@22.15.23))
+        version: https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/e7f85a6e0e982dcadc400a7c5f8e7ca730cf72b7#path:/packages/vite-plugin-create-file(rollup@4.41.1)(vite@6.3.5(@types/node@22.15.23))
       '@foundryvtt/vite-plugin-import-files':
         specifier: github:TheSmeltingAnvil/fvtt-vite-plugins#main&path:/packages/vite-plugin-import-files
-        version: https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/9d5826a3fdb08c0e45d8f97e049d55f761844ec8#path:/packages/vite-plugin-import-files(rollup@4.41.1)(vite@6.3.5(@types/node@22.15.23))
+        version: https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/e7f85a6e0e982dcadc400a7c5f8e7ca730cf72b7#path:/packages/vite-plugin-import-files(rollup@4.41.1)(vite@6.3.5(@types/node@22.15.23))
       '@foundryvtt/vite-plugin-replace-vars':
         specifier: github:TheSmeltingAnvil/fvtt-vite-plugins#main&path:/packages/vite-plugin-replace-vars
-        version: https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/9d5826a3fdb08c0e45d8f97e049d55f761844ec8#path:/packages/vite-plugin-replace-vars(rollup@4.41.1)(vite@6.3.5(@types/node@22.15.23))
+        version: https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/e7f85a6e0e982dcadc400a7c5f8e7ca730cf72b7#path:/packages/vite-plugin-replace-vars(rollup@4.41.1)(vite@6.3.5(@types/node@22.15.23))
       '@rollup/pluginutils':
         specifier: 5.1.4
         version: 5.1.4(rollup@4.41.1)
@@ -417,26 +417,26 @@ packages:
     resolution: {integrity: sha512-0J+zgWxHN+xXONWIyPWKFMgVuJoZuGiIFu8yxk7RJjxkzpGmyja5wRFqZIVtjDVOQpV+Rw0iOAjYPE2eQyjr0w==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@foundryvtt/vite-plugin-copy-static-files@https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/9d5826a3fdb08c0e45d8f97e049d55f761844ec8#path:/packages/vite-plugin-copy-static-files':
-    resolution: {path: /packages/vite-plugin-copy-static-files, tarball: https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/9d5826a3fdb08c0e45d8f97e049d55f761844ec8}
+  '@foundryvtt/vite-plugin-copy-static-files@https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/e7f85a6e0e982dcadc400a7c5f8e7ca730cf72b7#path:/packages/vite-plugin-copy-static-files':
+    resolution: {path: /packages/vite-plugin-copy-static-files, tarball: https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/e7f85a6e0e982dcadc400a7c5f8e7ca730cf72b7}
     version: 0.1.0
     peerDependencies:
       vite: '>=6.0.0'
 
-  '@foundryvtt/vite-plugin-create-file@https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/9d5826a3fdb08c0e45d8f97e049d55f761844ec8#path:/packages/vite-plugin-create-file':
-    resolution: {path: /packages/vite-plugin-create-file, tarball: https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/9d5826a3fdb08c0e45d8f97e049d55f761844ec8}
+  '@foundryvtt/vite-plugin-create-file@https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/e7f85a6e0e982dcadc400a7c5f8e7ca730cf72b7#path:/packages/vite-plugin-create-file':
+    resolution: {path: /packages/vite-plugin-create-file, tarball: https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/e7f85a6e0e982dcadc400a7c5f8e7ca730cf72b7}
     version: 0.1.0
     peerDependencies:
       vite: '>=6.0.0'
 
-  '@foundryvtt/vite-plugin-import-files@https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/9d5826a3fdb08c0e45d8f97e049d55f761844ec8#path:/packages/vite-plugin-import-files':
-    resolution: {path: /packages/vite-plugin-import-files, tarball: https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/9d5826a3fdb08c0e45d8f97e049d55f761844ec8}
+  '@foundryvtt/vite-plugin-import-files@https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/e7f85a6e0e982dcadc400a7c5f8e7ca730cf72b7#path:/packages/vite-plugin-import-files':
+    resolution: {path: /packages/vite-plugin-import-files, tarball: https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/e7f85a6e0e982dcadc400a7c5f8e7ca730cf72b7}
     version: 0.1.0
     peerDependencies:
       vite: '>=6.0.0'
 
-  '@foundryvtt/vite-plugin-replace-vars@https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/9d5826a3fdb08c0e45d8f97e049d55f761844ec8#path:/packages/vite-plugin-replace-vars':
-    resolution: {path: /packages/vite-plugin-replace-vars, tarball: https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/9d5826a3fdb08c0e45d8f97e049d55f761844ec8}
+  '@foundryvtt/vite-plugin-replace-vars@https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/e7f85a6e0e982dcadc400a7c5f8e7ca730cf72b7#path:/packages/vite-plugin-replace-vars':
+    resolution: {path: /packages/vite-plugin-replace-vars, tarball: https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/e7f85a6e0e982dcadc400a7c5f8e7ca730cf72b7}
     version: 0.1.0
     peerDependencies:
       vite: '>=6.0.0'
@@ -827,8 +827,8 @@ packages:
     peerDependencies:
       eslint: '>=7.0.0'
 
-  eslint-js@https://codeload.github.com/eslint/js/tar.gz/b847f35787d4bf2ec68163f45f3e4dc2d209eee8:
-    resolution: {tarball: https://codeload.github.com/eslint/js/tar.gz/b847f35787d4bf2ec68163f45f3e4dc2d209eee8}
+  eslint-js@https://codeload.github.com/eslint/js/tar.gz/1d39fd2501722cd8ee32de07521ae8c18962f0a6:
+    resolution: {tarball: https://codeload.github.com/eslint/js/tar.gz/1d39fd2501722cd8ee32de07521ae8c18962f0a6}
     version: 1.0.0
 
   eslint-plugin-prettier@5.4.0:
@@ -1576,7 +1576,7 @@ snapshots:
       '@eslint/core': 0.14.0
       levn: 0.4.1
 
-  '@foundryvtt/vite-plugin-copy-static-files@https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/9d5826a3fdb08c0e45d8f97e049d55f761844ec8#path:/packages/vite-plugin-copy-static-files(rollup@4.41.1)(vite@6.3.5(@types/node@22.15.23))':
+  '@foundryvtt/vite-plugin-copy-static-files@https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/e7f85a6e0e982dcadc400a7c5f8e7ca730cf72b7#path:/packages/vite-plugin-copy-static-files(rollup@4.41.1)(vite@6.3.5(@types/node@22.15.23))':
     dependencies:
       '@rollup/pluginutils': 5.1.4(rollup@4.41.1)
       '@types/crypto-js': 4.2.2
@@ -1595,7 +1595,7 @@ snapshots:
     transitivePeerDependencies:
       - rollup
 
-  '@foundryvtt/vite-plugin-create-file@https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/9d5826a3fdb08c0e45d8f97e049d55f761844ec8#path:/packages/vite-plugin-create-file(rollup@4.41.1)(vite@6.3.5(@types/node@22.15.23))':
+  '@foundryvtt/vite-plugin-create-file@https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/e7f85a6e0e982dcadc400a7c5f8e7ca730cf72b7#path:/packages/vite-plugin-create-file(rollup@4.41.1)(vite@6.3.5(@types/node@22.15.23))':
     dependencies:
       '@rollup/pluginutils': 5.1.4(rollup@4.41.1)
       '@types/node': 22.15.23
@@ -1604,7 +1604,7 @@ snapshots:
     transitivePeerDependencies:
       - rollup
 
-  '@foundryvtt/vite-plugin-import-files@https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/9d5826a3fdb08c0e45d8f97e049d55f761844ec8#path:/packages/vite-plugin-import-files(rollup@4.41.1)(vite@6.3.5(@types/node@22.15.23))':
+  '@foundryvtt/vite-plugin-import-files@https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/e7f85a6e0e982dcadc400a7c5f8e7ca730cf72b7#path:/packages/vite-plugin-import-files(rollup@4.41.1)(vite@6.3.5(@types/node@22.15.23))':
     dependencies:
       '@rollup/pluginutils': 5.1.4(rollup@4.41.1)
       '@types/fs-extra': 11.0.4
@@ -1615,7 +1615,7 @@ snapshots:
     transitivePeerDependencies:
       - rollup
 
-  '@foundryvtt/vite-plugin-replace-vars@https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/9d5826a3fdb08c0e45d8f97e049d55f761844ec8#path:/packages/vite-plugin-replace-vars(rollup@4.41.1)(vite@6.3.5(@types/node@22.15.23))':
+  '@foundryvtt/vite-plugin-replace-vars@https://codeload.github.com/TheSmeltingAnvil/fvtt-vite-plugins/tar.gz/e7f85a6e0e982dcadc400a7c5f8e7ca730cf72b7#path:/packages/vite-plugin-replace-vars(rollup@4.41.1)(vite@6.3.5(@types/node@22.15.23))':
     dependencies:
       '@rollup/pluginutils': 5.1.4(rollup@4.41.1)
       '@types/fs-extra': 11.0.4
@@ -1990,7 +1990,7 @@ snapshots:
     dependencies:
       eslint: 9.27.0
 
-  eslint-js@https://codeload.github.com/eslint/js/tar.gz/b847f35787d4bf2ec68163f45f3e4dc2d209eee8: {}
+  eslint-js@https://codeload.github.com/eslint/js/tar.gz/1d39fd2501722cd8ee32de07521ae8c18962f0a6: {}
 
   eslint-plugin-prettier@5.4.0(eslint-config-prettier@10.1.5(eslint@9.27.0))(eslint@9.27.0)(prettier@3.5.3):
     dependencies:

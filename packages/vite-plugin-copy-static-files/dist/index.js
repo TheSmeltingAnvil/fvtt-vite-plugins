@@ -57,67 +57,66 @@ var fs = __toESM(require("fs-extra"));
 var import_minimatch = require("minimatch");
 var import_node_crypto = __toESM(require("crypto"));
 var import_node_path = __toESM(require("path"));
-function collectFiles(srcDir, options) {
-  var _a, _b, _c, _d, _e;
+var colors = __toESM(require("picocolors"));
+async function collectFiles(cwd, dest, options, logger) {
+  var _a, _b, _c;
   const globalGlobOptions = {
-    cwd: srcDir,
+    cwd,
     dot: false,
     onlyFiles: true,
-    unique: true
+    unique: true,
+    ignore: (() => {
+      switch (options.ignore) {
+        case "all":
+          return ["**"];
+        case false:
+          return [];
+        default:
+          return options.ignore;
+      }
+    })()
   };
-  const files = [];
+  logger.info(colors.green("Collecting files..."));
+  const globOptions = __spreadValues({}, globalGlobOptions);
+  const files = /* @__PURE__ */ new Map();
   for (const file of options.files) {
-    if (typeof file === "string") {
-      for (const found of glob.globSync(file, globalGlobOptions))
-        files.push({ src: found, dst: import_node_path.default.dirname(found), overwrite: true });
-    } else {
-      const of = file;
-      const globOptions = __spreadValues({}, globalGlobOptions);
-      if (of.root) globOptions.cwd = import_node_path.default.isAbsolute(of.root) ? of.root : import_node_path.default.resolve(srcDir, of.root);
-      if (of.ignored) globOptions.ignore = Array.isArray(of.ignored) ? of.ignored : [of.ignored];
-      (_b = globOptions.ignore) == null ? void 0 : _b.push(...(_a = options.ignored) != null ? _a : []);
-      for (const found of glob.globSync(of.src, globOptions))
-        files.push(__spreadProps(__spreadValues({}, of), {
-          src: import_node_path.default.resolve((_c = of.root) != null ? _c : "", found),
-          dst: import_node_path.default.join((_d = of.dst) != null ? _d : "", import_node_path.default.dirname(found)),
-          overwrite: (_e = of.overwrite) != null ? _e : true
-        }));
+    globOptions.cwd = import_node_path.default.isAbsolute(file.root) ? (_a = file.root) != null ? _a : "" : import_node_path.default.resolve(cwd, file.root);
+    if (file.ignore) (_b = globOptions.ignore) == null ? void 0 : _b.push(...Array.isArray(file.ignore) ? file.ignore : [file.ignore]);
+    for (const found of glob.globSync(file.pattern, globOptions)) {
+      const src = import_node_path.default.resolve(file.root, found);
+      const relativeTo = import_node_path.default.resolve(cwd, file.root);
+      const { base, dir } = import_node_path.default.parse(import_node_path.default.relative(relativeTo, src));
+      const filename = file.rename ? await renameFile(dir, base, file.rename) : base;
+      const dst = import_node_path.default.resolve(dest, file.dest, dir, filename);
+      const url = ((_c = file.serve) == null ? void 0 : _c.reloadOnChange) ? import_node_path.default.posix.join(dir.replaceAll(import_node_path.default.win32.sep, import_node_path.default.posix.sep), filename) : void 0;
+      files.set(src, __spreadProps(__spreadValues({}, file), {
+        src,
+        dst,
+        url
+      }));
     }
   }
+  logger.info(colors.green(`${files.size} files collected.`));
   return files;
 }
-async function copyFiles(srcDir, dstDir, files, options = {}) {
-  const resolvedFiles = files.map(async (file) => {
-    const resolvedSrc = import_node_path.default.resolve(srcDir, file.root, file.src);
-    const { base, dir } = import_node_path.default.parse(resolvedSrc);
-    let resolvedDst = import_node_path.default.resolve(dstDir, file.dst);
-    const newName = file.rename ? await renameFile(dir, base, file.rename) : base;
-    resolvedDst = import_node_path.default.join(resolvedDst, newName);
-    return __spreadProps(__spreadValues({}, file), {
-      resolvedSrc,
-      resolvedDst
-    });
-  });
-  resolvedFiles.forEach(async (promise) => {
-    var _a;
-    if (options.ignored === "all") return;
-    const ignored = (_a = options.ignored) != null ? _a : [];
-    const file = await promise;
-    const matching = ignored.some((pattern) => {
-      return (0, import_minimatch.minimatch)(file.src, pattern);
-    });
+async function copyFiles(files, options) {
+  var _a;
+  for (const file of files) {
+    if ((options == null ? void 0 : options.ignore) === "all") return;
+    const ignore = (_a = options == null ? void 0 : options.ignore) != null ? _a : false;
+    const matching = ignore && ignore.some((pattern) => (0, import_minimatch.minimatch)(file.src, pattern));
     if (matching) return;
     if (file.transform) {
       const transform = resolveTransformOption(file.transform);
-      const transformedContent = await getTransformedContent(file.resolvedSrc, transform);
-      if (transformedContent) await fs.outputFile(file.resolvedDst, transformedContent);
+      const transformedContent = await getTransformedContent(file.src, transform);
+      if (transformedContent) await fs.outputFile(file.dst, transformedContent);
     } else {
-      await fs.copy(file.resolvedSrc, file.resolvedDst, {
+      await fs.copy(file.src, file.dst, {
         overwrite: file.overwrite === true,
         errorOnExist: file.overwrite === "error"
       });
     }
-  });
+  }
 }
 function renameFile(dir, file, rename) {
   const { name, ext } = import_node_path.default.parse(file);
@@ -142,21 +141,23 @@ function calculateMd5Base64(content) {
 function build(options) {
   let config;
   let output = false;
+  let logger;
   return {
     name: "vite:copy-static-files:build",
     apply: "build",
     buildEnd: () => {
       output = false;
     },
-    configResolved: async (configResolved) => {
-      config = configResolved;
+    configResolved: async (resolvedConfig) => {
+      config = resolvedConfig;
+      logger = config.logger;
     },
     [options.build.hook]: async () => {
-      var _a, _b;
+      var _a;
       if (output) return;
       output = true;
-      const files = collectFiles((_a = options.root) != null ? _a : config.root, options);
-      await copyFiles((_b = options.root) != null ? _b : config.root, config.build.outDir, files);
+      const collectedFiles = await collectFiles((_a = options.root) != null ? _a : config.root, config.build.outDir, options, logger);
+      await copyFiles(collectedFiles.values().toArray());
     }
   };
 }
@@ -166,89 +167,73 @@ var chokidar = __toESM(require("chokidar"));
 var fs2 = __toESM(require("fs-extra"));
 var import_mrmime = require("mrmime");
 var import_node_path2 = __toESM(require("path"));
-var colors = __toESM(require("picocolors"));
+var colors2 = __toESM(require("picocolors"));
 var import_throttle_debounce = require("throttle-debounce");
 function serve(options) {
   let config;
-  let srcDir;
+  let foundryPackageRootDir;
   let watcher;
   let ws;
   let logger;
-  const files = /* @__PURE__ */ new Map();
+  let collectedFiles;
   return {
     name: "vite:copy-static-files:serve",
     apply: "serve",
     closeBundle: async () => {
       await watcher.close();
     },
-    configResolved: async (configResolved) => {
+    configResolved: async (resolvedConfig) => {
       var _a;
-      config = configResolved;
+      config = resolvedConfig;
       logger = config.logger;
-      srcDir = options.root && import_node_path2.default.isAbsolute(options.root) ? options.root : import_node_path2.default.resolve(config.root, (_a = options.root) != null ? _a : "");
+      foundryPackageRootDir = options.root && import_node_path2.default.isAbsolute(options.root) ? options.root : import_node_path2.default.resolve(config.root, (_a = options.root) != null ? _a : "");
     },
     configureServer: async (server) => {
+      async function watch2(patterns2) {
+        async function collectAndCopyFiles() {
+          try {
+            collectedFiles = await collectFiles(foundryPackageRootDir, config.build.outDir, options, logger);
+            await copyFiles(collectedFiles.values().toArray(), options);
+          } catch (e) {
+            logger.error(colors2.red(e));
+          }
+        }
+        const watcher2 = chokidar.watch(patterns2, __spreadValues({
+          cwd: foundryPackageRootDir,
+          ignoreInitial: false
+        }, options.watch.options));
+        watcher2.on("add", () => (0, import_throttle_debounce.debounce)(100, async () => collectAndCopyFiles()));
+        await collectAndCopyFiles();
+        return watcher2;
+      }
       ws = server.ws;
       const { middlewares } = server;
-      const paths = options.files.flatMap((target) => typeof target === "string" ? target : target.src);
-      watcher = watchFilesForCollection(srcDir, paths, config, options, files, logger);
+      const patterns = options.files.flatMap((target) => target.pattern);
+      watcher = await watch2(patterns);
       return () => {
-        middlewares.use(serveStaticFiles(config, options, files));
+        middlewares.use(serveStaticFiles(config, options, collectedFiles));
       };
     },
     watchChange: async (filepath, change) => {
-      var _a, _b;
+      var _a;
       function reload(filepath2, reloadEvent) {
         ws.send(reloadEvent, { path: filepath2 });
-        logger.info(colors.green("hot reload static file: ") + colors.dim(filepath2), {
+        logger.info(colors2.green("hot reload static file: ") + colors2.dim(filepath2), {
           timestamp: true
         });
       }
-      const key = import_node_path2.default.posix.join("/", import_node_path2.default.relative(srcDir, filepath).replaceAll(import_node_path2.default.sep, import_node_path2.default.posix.sep));
-      let file = files.get(key);
-      if (!file) {
-        file = files.values().find((file2) => file2.src === key.substring(1));
-        if (!file) return;
-      }
-      copyFiles(srcDir, config.build.outDir, [file], options);
-      if ((_a = file.serve) == null ? void 0 : _a.reloadOnChange) {
-        reload(key, (_b = file.serve) == null ? void 0 : _b.reloadOnChange);
+      filepath = import_node_path2.default.normalize(filepath.replaceAll(import_node_path2.default.win32.sep, import_node_path2.default.posix.sep));
+      const file = collectedFiles.get(filepath);
+      if (!file) return;
+      await copyFiles([file], options);
+      if (file.url && ((_a = file.serve) == null ? void 0 : _a.reloadOnChange)) {
+        reload(file.url, file.serve.reloadOnChange);
       }
       if (change.event === "delete") {
-        files.delete(key);
+        collectedFiles.delete(filepath);
       }
     }
   };
-}
-function watchFilesForCollection(rootpath, paths, config, options, files, logger) {
-  async function collectAndCopyFiles() {
-    var _a;
-    try {
-      const rootDir = config.root;
-      const srcDir = import_node_path2.default.resolve(rootDir, (_a = options.root) != null ? _a : "");
-      logger.info(colors.green("Collecting files..."));
-      const collectedFiles = collectFiles(srcDir, options);
-      logger.info(colors.green(`${collectedFiles.length} files collected.`));
-      await copyFiles(srcDir, config.build.outDir, collectedFiles, options);
-      collectedFiles.forEach(async (file) => {
-        const { base, dir } = import_node_path2.default.parse(file.src);
-        const name = file.rename ? await renameFile(dir, base, file.rename) : base;
-        const pathname = import_node_path2.default.posix.join("/", dir, name);
-        if (!files.has(pathname)) files.set(pathname, file);
-      });
-    } catch (e) {
-      logger.error(colors.red(e));
-    }
-  }
-  const watcher = chokidar.watch(paths, __spreadValues({
-    cwd: rootpath,
-    ignoreInitial: false
-  }, options.watch.options));
-  watcher.on("add", () => {
-    (0, import_throttle_debounce.debounce)(100, async () => collectAndCopyFiles());
-  });
-  collectAndCopyFiles();
-  return watcher;
 }
 function serveStaticFiles(config, options, files) {
   return async (req, res, next) => {
@@ -382,20 +367,37 @@ function copyStaticFiles(options) {
   return [serve(resolvedOptions), build(resolvedOptions)];
   function resolveOptions(options2) {
     var _a, _b, _c, _d, _e, _f;
-    const build2 = (_a = options2.build) != null ? _a : {};
-    build2.hook = (_b = build2.hook) != null ? _b : "writeBundle";
+    function resolveFiles(files) {
+      return files.map((file) => {
+        var _a2, _b2, _c2, _d2, _e2;
+        return typeof file === "string" ? {
+          dest: "",
+          ignore: false,
+          overwrite: true,
+          pattern: file,
+          root: (_a2 = resolvedOptions.root) != null ? _a2 : ""
+        } : __spreadProps(__spreadValues({}, file), {
+          dest: (_b2 = file.dest) != null ? _b2 : "",
+          ignore: (_c2 = file.ignore) != null ? _c2 : false,
+          overwrite: (_d2 = file.overwrite) != null ? _d2 : true,
+          root: (_e2 = file.root) != null ? _e2 : ""
+        });
+      });
+    }
+    const build2 = ((_a = options2.build) == null ? void 0 : _a.hook) ? options2.build : { hook: "writeBundle" };
+    build2.hook = build2.hook ? build2.hook : "writeBundle";
     const resolved = {
       build: build2,
-      files: options2.ignored === "all" ? [] : options2.files,
-      ignored: options2.ignored,
+      files: options2.ignore === "all" ? [] : resolveFiles(options2.files),
+      ignore: (_b = options2.ignore) != null ? _b : false,
       root: options2.root,
       watch: {
         options: (_d = (_c = options2.watch) == null ? void 0 : _c.options) != null ? _d : {},
         reloadPageOnChange: (_f = (_e = options2.watch) == null ? void 0 : _e.reloadPageOnChange) != null ? _f : false
       }
     };
-    if (typeof options2.ignored === "string" && options2.ignored === "all") resolved.watch.options.ignored = ["**/*"];
-    else if (typeof options2.ignored === "object") resolved.watch.options.ignored = options2.ignored;
+    if (typeof options2.ignore === "string" && options2.ignore === "all") resolved.watch.options.ignored = ["**/*"];
+    else if (typeof options2.ignore === "object") resolved.watch.options.ignored = options2.ignore;
     return resolved;
   }
 }

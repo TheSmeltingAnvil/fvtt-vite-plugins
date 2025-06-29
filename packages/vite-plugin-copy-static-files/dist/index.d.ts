@@ -11,14 +11,14 @@ type TransformOptionObject = {
     handler: TransformFunc<Buffer>;
 };
 type TransformOption = TransformFunc<string> | TransformOptionObject;
-interface File {
-    root?: string;
-    src: string | string[];
-    dst?: string;
-    ignored?: string | string[];
-    rename?: string | RenameFunc;
-    transform?: TransformOption;
+interface FileOptions {
+    dest?: string;
+    ignore?: false | string | string[];
     overwrite?: boolean | "error";
+    pattern: string | string[];
+    rename?: string | RenameFunc;
+    root?: string;
+    transform?: TransformOption;
     serve?: {
         reloadOnChange?: string;
     };
@@ -27,8 +27,8 @@ interface CopyStaticFilesOptions {
     build?: {
         hook?: string;
     };
-    files: (string | File)[];
-    ignored?: "all" | string[];
+    files: (string | FileOptions)[];
+    ignore?: false | string[] | "all";
     root?: string;
     watch?: {
         options?: ChokidarOptions;
@@ -38,4 +38,4 @@ interface CopyStaticFilesOptions {
 
 declare function copyStaticFiles(options: CopyStaticFilesOptions): Vite.Plugin[];
 
-export { type CopyStaticFilesOptions, type File, type RenameFunc, type TransformFunc, type TransformOption, type TransformOptionObject, copyStaticFiles };
+export { type CopyStaticFilesOptions, type FileOptions, type RenameFunc, type TransformFunc, type TransformOption, type TransformOptionObject, copyStaticFiles };

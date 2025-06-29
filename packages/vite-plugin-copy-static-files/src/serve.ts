@@ -7,17 +7,19 @@ import path from "node:path"
 import * as colors from "picocolors"
 import { debounce } from "throttle-debounce"
 import * as Vite from "vite"
-import { FileMap, FileValue, ResolvedCopyStaticFilesOptions } from "./_types"
+import { CollectedFile, ResolvedCopyStaticFilesOptions } from "./_types"
 import * as utils from "./_utils"
 import { TransformOptionObject } from "./types"
 
+type CollectedFileMap = Map<string, CollectedFile>
+
 export function serve(options: ResolvedCopyStaticFilesOptions): Vite.Plugin {
   let config: Vite.ResolvedConfig
-  let srcDir: string
+  let foundryPackageRootDir: string
   let watcher: chokidar.FSWatcher
   let ws: Vite.WebSocketServer
   let logger: Vite.Logger
-  const files: FileMap = new Map()
+  let collectedFiles: CollectedFileMap
 
   return {
     name: "vite:copy-static-files:serve",
@@ -25,21 +27,41 @@ export function serve(options: ResolvedCopyStaticFilesOptions): Vite.Plugin {
     closeBundle: async () => {
       await watcher.close()
     },
-    configResolved: async (configResolved: Vite.ResolvedConfig) => {
-      config = configResolved
+    configResolved: async (resolvedConfig: Vite.ResolvedConfig) => {
+      config = resolvedConfig
       logger = config.logger
-      srcDir =
+      foundryPackageRootDir =
         options.root && path.isAbsolute(options.root) ? options.root : path.resolve(config.root, options.root ?? "")
     },
     configureServer: async (server: Vite.ViteDevServer) => {
+      async function watch(patterns: string[]): Promise<chokidar.FSWatcher> {
+        async function collectAndCopyFiles() {
+          try {
+            collectedFiles = await utils.collectFiles(foundryPackageRootDir, config.build.outDir, options, logger)
+            await utils.copyFiles(collectedFiles.values().toArray(), options)
+          } catch (e) {
+            logger.error(colors.red(e as string))
+          }
+        }
+
+        const watcher = chokidar.watch(patterns, {
+          cwd: foundryPackageRootDir,
+          ignoreInitial: false,
+          ...options.watch.options,
+        })
+        watcher.on("add", () => debounce(100, async () => collectAndCopyFiles()))
+        await collectAndCopyFiles() // collect files immediately
+        return watcher
+      }
+
       ws = server.ws
       const { middlewares } = server
 
-      const paths: string[] = options.files.flatMap((target) => (typeof target === "string" ? target : target.src))
-      watcher = watchFilesForCollection(srcDir, paths, config, options, files, logger)
+      const patterns: string[] = options.files.flatMap((target) => target.pattern)
+      watcher = await watch(patterns)
 
       return () => {
-        middlewares.use(serveStaticFiles(config, options, files))
+        middlewares.use(serveStaticFiles(config, options, collectedFiles))
       }
     },
     watchChange: async (filepath: string, change: { event: Vite.Rollup.ChangeEvent }) => {
@@ -50,71 +72,26 @@ export function serve(options: ResolvedCopyStaticFilesOptions): Vite.Plugin {
         })
       }
 
-      const key = path.posix.join("/", path.relative(srcDir, filepath).replaceAll(path.sep, path.posix.sep))
-      let file = files.get(key)
-      if (!file) {
-        file = files.values().find((file) => file.src === key.substring(1))
-        if (!file) return
-      }
+      filepath = path.normalize(filepath.replaceAll(path.win32.sep, path.posix.sep));
+      const file = collectedFiles.get(filepath)
+      if (!file) return
 
-      utils.copyFiles(srcDir, config.build.outDir, [file], options)
-      if (file.serve?.reloadOnChange) {
-        reload(key, file.serve?.reloadOnChange)
+      await utils.copyFiles([file], options)
+      if (file.url && file.serve?.reloadOnChange) {
+        reload(file.url, file.serve.reloadOnChange)
       }
 
       if (change.event === "delete") {
-        files.delete(key)
+        collectedFiles.delete(filepath)
       }
     },
   }
 }
 
-function watchFilesForCollection(
-  rootpath: string,
-  paths: string[],
-  config: Vite.ResolvedConfig,
-  options: ResolvedCopyStaticFilesOptions,
-  files: FileMap,
-  logger: Vite.Logger,
-): chokidar.FSWatcher {
-  async function collectAndCopyFiles() {
-    try {
-      const rootDir = config.root
-      const srcDir = path.resolve(rootDir, options.root ?? "")
-
-      logger.info(colors.green("Collecting files..."))
-      const collectedFiles = utils.collectFiles(srcDir, options)
-      logger.info(colors.green(`${collectedFiles.length} files collected.`))
-
-      await utils.copyFiles(srcDir, config.build.outDir, collectedFiles, options)
-
-      collectedFiles.forEach(async (file) => {
-        const { base, dir } = path.parse(file.src)
-        const name = file.rename ? await utils.renameFile(dir, base, file.rename) : base
-        const pathname = path.posix.join("/", dir, name)
-        if (!files.has(pathname)) files.set(pathname, file)
-      })
-    } catch (e) {
-      logger.error(colors.red(e as string))
-    }
-  }
-
-  const watcher = chokidar.watch(paths, {
-    cwd: rootpath,
-    ignoreInitial: false,
-    ...options.watch.options,
-  })
-  watcher.on("add", () => {
-    debounce(100, async () => collectAndCopyFiles())
-  })
-  collectAndCopyFiles()
-  return watcher
-}
-
 function serveStaticFiles(
   config: Vite.ResolvedConfig,
   options: ResolvedCopyStaticFilesOptions,
-  files: FileMap,
+  files: CollectedFileMap,
 ): Vite.Connect.NextHandleFunction {
   return async (req: Vite.Connect.IncomingMessage, res: ServerResponse, next: Vite.Connect.NextFunction) => {
     const { server } = config
@@ -147,9 +124,9 @@ function serveStaticFiles(
 
 function getLocalFileData(
   root: string,
-  files: FileMap,
+  files: CollectedFileMap,
   pathname: string,
-): (FileValue & { filepath: string; stats: fs.Stats }) | undefined {
+): (CollectedFile & { filepath: string; stats: fs.Stats }) | undefined {
   if (pathname.endsWith("/")) {
     pathname = pathname.slice(0, -1)
   }

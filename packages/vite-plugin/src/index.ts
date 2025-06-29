@@ -29,7 +29,7 @@ export async function foundryvtt(options?: FoundryVttOptions): Promise<Vite.Plug
     }),
     createFile({
       name: "index.mjs",
-      contents: `/* ${message} */\nimport './index.ts';\n`,
+      contents: `/* ${message} */\nimport './src/index.ts';\n`,
     }),
     createFile({
       name: "styles.css",
@@ -56,43 +56,43 @@ export async function foundryvtt(options?: FoundryVttOptions): Promise<Vite.Plug
     const defaultOptions: CopyStaticFilesOptions = {
       files: [
         {
+          pattern: "**/*.hbs",
           root: "src",
-          src: "**/*.hbs",
           serve: { reloadOnChange: "reload:template" },
         },
         {
+          pattern: "**/*.json",
           root: ".",
-          src: ["**/*.json"],
-          ignored: ["package.json", "tsconfig.json", "tsconfig.*.json", "src/**"],
+          ignore: ["package.json", "tsconfig.json", "tsconfig.*.json", "src/**"],
           transform: replaceFileVars,
         },
         {
+          pattern: "**/*.json",
           root: "src",
-          src: ["**/*.json"],
           transform: replaceFileVars,
         },
         {
+          pattern: ["**/*.yml", "**/*.yaml"],
           root: ".",
-          src: ["**/*.yml", "**/*.yaml"],
-          ignored: ["foundryconfig.*.yml", "foundryconfig.*.yaml", "src/**", "packs/**"],
+          ignore: ["foundryconfig.*.yml", "foundryconfig.*.yaml", "src/**", "packs/**"],
           rename: "*.json",
           transform: replaceFileVars,
         },
         {
+          pattern: ["**/*.yml", "**/*.yaml"],
           root: "src",
-          src: ["**/*.yml", "**/*.yaml"],
           rename: "*.json",
           transform: replaceFileVars,
         },
       ],
-      ignored: ["node_modules/**", "packs/**", "public/**", "static/**", "dist/**"],
+      ignore: ["node_modules/**", "packs/**", "public/**", "static/**", "dist/**"],
     }
 
     if (options === undefined || options === true) return defaultOptions
 
     if (options === false) {
       return {
-        ignored: "all",
+        ignore: "all",
         files: [],
       }
     }
@@ -185,7 +185,7 @@ export function provide(): Vite.Plugin {
     }
 
     let code = 200
-    const headers = getMergeHeaders(staticHeaders, res);
+    const headers = getMergeHeaders(staticHeaders, res)
     const opts: { start?: number; end?: number } = {}
 
     if (path.extname(file) === ".mjs" && headers["Content-Type"] !== "text/javascript") {

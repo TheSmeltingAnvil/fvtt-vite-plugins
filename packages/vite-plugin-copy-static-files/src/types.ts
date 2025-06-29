@@ -6,24 +6,24 @@ export type TransformFunc<T extends string | Buffer> = (content: T, filename: st
 
 export type TransformOptionObject =
   | {
-    encoding: Omit<BufferEncoding, "binary">
-    handler: TransformFunc<string>
-  }
+      encoding: Omit<BufferEncoding, "binary">
+      handler: TransformFunc<string>
+    }
   | {
-    encoding: "buffer"
-    handler: TransformFunc<Buffer>
-  }
+      encoding: "buffer"
+      handler: TransformFunc<Buffer>
+    }
 
 export type TransformOption = TransformFunc<string> | TransformOptionObject
 
-export interface File {
-  root?: string
-  src: string | string[]
-  dst?: string
-  ignored?: string | string[]
-  rename?: string | RenameFunc
-  transform?: TransformOption
+export interface FileOptions {
+  dest?: string
+  ignore?: false | string | string[]
   overwrite?: boolean | "error"
+  pattern: string | string[]
+  rename?: string | RenameFunc
+  root?: string
+  transform?: TransformOption
   serve?: {
     reloadOnChange?: string /*| ReloadFunc*/
   }
@@ -33,8 +33,8 @@ export interface CopyStaticFilesOptions {
   build?: {
     hook?: string
   }
-  files: (string | File)[]
-  ignored?: "all" | string[]
+  files: (string | FileOptions)[]
+  ignore?: false | string[] | "all"
   root?: string
   watch?: {
     options?: ChokidarOptions

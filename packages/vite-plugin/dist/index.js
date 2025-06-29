@@ -70,7 +70,7 @@ async function foundryvtt(options) {
     (0, import_vite_plugin_create_file.createFile)({
       name: "index.mjs",
       contents: `/* ${message} */
-import './index.ts';
+import './src/index.ts';
 `
     }),
     (0, import_vite_plugin_create_file.createFile)({
@@ -97,41 +97,41 @@ import './index.ts';
     const defaultOptions = {
       files: [
         {
+          pattern: "**/*.hbs",
           root: "src",
-          src: "**/*.hbs",
           serve: { reloadOnChange: "reload:template" }
         },
         {
+          pattern: "**/*.json",
           root: ".",
-          src: ["**/*.json"],
-          ignored: ["package.json", "tsconfig.json", "tsconfig.*.json", "src/**"],
+          ignore: ["package.json", "tsconfig.json", "tsconfig.*.json", "src/**"],
           transform: replaceFileVars
         },
         {
+          pattern: "**/*.json",
           root: "src",
-          src: ["**/*.json"],
           transform: replaceFileVars
         },
         {
+          pattern: ["**/*.yml", "**/*.yaml"],
           root: ".",
-          src: ["**/*.yml", "**/*.yaml"],
-          ignored: ["foundryconfig.*.yml", "foundryconfig.*.yaml", "src/**", "packs/**"],
+          ignore: ["foundryconfig.*.yml", "foundryconfig.*.yaml", "src/**", "packs/**"],
           rename: "*.json",
           transform: replaceFileVars
         },
         {
+          pattern: ["**/*.yml", "**/*.yaml"],
           root: "src",
-          src: ["**/*.yml", "**/*.yaml"],
           rename: "*.json",
           transform: replaceFileVars
         }
       ],
-      ignored: ["node_modules/**", "packs/**", "public/**", "static/**", "dist/**"]
+      ignore: ["node_modules/**", "packs/**", "public/**", "static/**", "dist/**"]
     };
     if (options2 === void 0 || options2 === true) return defaultOptions;
     if (options2 === false) {
       return {
-        ignored: "all",
+        ignore: "all",
         files: []
       };
     }
