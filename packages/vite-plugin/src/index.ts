@@ -1,26 +1,40 @@
-import { copyStaticFiles, CopyStaticFilesOptions } from "@foundryvtt/vite-plugin-copy-static-files"
-import { createFile } from "@foundryvtt/vite-plugin-create-file"
-import { importJson, importYaml } from "@foundryvtt/vite-plugin-import-files"
-import { replaceVars } from "@foundryvtt/vite-plugin-replace-vars"
-import * as fse from "fs-extra"
-import * as YAML from "js-yaml"
-import { OutgoingHttpHeaders, ServerResponse } from "node:http"
-import path from "node:path"
-import * as Vite from "vite"
+import {
+  copyStaticFiles,
+  CopyStaticFilesOptions,
+} from "@foundryvtt/vite-plugin-copy-static-files";
+import { createFile } from "@foundryvtt/vite-plugin-create-file";
+import { importJson, importYaml } from "@foundryvtt/vite-plugin-import-files";
+import {
+  replaceVars,
+  ReplaceVarsOptions,
+} from "@foundryvtt/vite-plugin-replace-vars";
+import * as fse from "fs-extra";
+import * as YAML from "js-yaml";
+import { OutgoingHttpHeaders, ServerResponse } from "node:http";
+import path from "node:path";
+import * as Vite from "vite";
 
-export interface FoundryVttOptions {
-  copyStaticFiles: boolean | Partial<CopyStaticFilesOptions> | undefined
+export interface FoundryvttOptions {
+  root?: string;
+  copyStaticFiles?: boolean | Partial<CopyStaticFilesOptions>;
+  replaceVars?: ReplaceVarsOptions;
   serve?: {
-    link?: boolean
-  }
+    link?: boolean;
+  };
 }
 
-let mappings: Record<string, string>
+let mappings: Record<string, string>;
 
-export async function foundryvtt(options?: FoundryVttOptions): Promise<Vite.Plugin[]> {
-  const packageJson = await readFromPackageJson(".")
-  mappings = packageJson.foundry
-  const message = "This file is for a running vite dev server and is not copied to a build"
+export async function foundryvtt(
+  options?: FoundryvttOptions
+): Promise<Vite.Plugin[]> {
+  const packageJson = await readFromPackageJson(".");
+  mappings = {
+    ...packageJson.foundry,
+    ...(options?.replaceVars?.mappings ?? []),
+  }; // REVIEW use Zod for validation
+  const message =
+    "This file is for a running vite dev server and is not copied to a build";
   return [
     // Create required files.
     createFile({
@@ -29,14 +43,16 @@ export async function foundryvtt(options?: FoundryVttOptions): Promise<Vite.Plug
     }),
     createFile({
       name: "index.mjs",
-      contents: `/* ${message} */\nimport './src/index.ts';\n`,
+      contents: `/* ${message} */\nimport './index.ts';\n`, // REVIEW remove `src` when ??? (use root from options?)
     }),
     createFile({
       name: "styles.css",
       contents: `/* ${message} */\n`,
     }),
     // Copy static files with reload if change.
-    ...copyStaticFiles(resolveCopyStaticFilesOptions(options?.copyStaticFiles)),
+    ...copyStaticFiles(
+      resolveCopyStaticFilesOptions(options?.root, options?.copyStaticFiles)
+    ),
     // Allow importing JSON and YAML files in code.
     importJson(),
     importYaml(),
@@ -44,16 +60,21 @@ export async function foundryvtt(options?: FoundryVttOptions): Promise<Vite.Plug
     replaceVars({ mappings }),
     // Provide `dist` files.
     provide(),
-  ]
+  ];
 
   async function readFromPackageJson(parent?: string) {
-    const filePath = path.join(parent ?? ".", "package.json")
-    const packageJson = await fse.readFile(filePath, "utf-8")
-    return JSON.parse(packageJson)
+    const filePath = path.join(parent ?? ".", "package.json");
+    const packageJson = await fse.readFile(filePath, "utf-8");
+    return JSON.parse(packageJson);
   }
 
-  function resolveCopyStaticFilesOptions(options?: boolean | Partial<CopyStaticFilesOptions>): CopyStaticFilesOptions {
-    const defaultOptions: CopyStaticFilesOptions = {
+  function resolveCopyStaticFilesOptions(
+    root?: string,
+    options?: boolean | Partial<CopyStaticFilesOptions>
+  ): CopyStaticFilesOptions {
+    const defaultOptions: Omit<CopyStaticFilesOptions, "ignore"> & {
+      ignore: string[];
+    } = {
       files: [
         {
           pattern: "**/*.hbs",
@@ -63,7 +84,15 @@ export async function foundryvtt(options?: FoundryVttOptions): Promise<Vite.Plug
         {
           pattern: "**/*.json",
           root: ".",
-          ignore: ["package.json", "tsconfig.json", "tsconfig.*.json", "src/**"],
+          ignore: [
+            "package.json",
+            "package-lock.json",
+            "tsconfig.json",
+            "tsconfig.*.json",
+            "foundryconfig.json",
+            "foundryconfig.*.json",
+            "src/**",
+          ],
           transform: replaceFileVars,
         },
         {
@@ -74,7 +103,15 @@ export async function foundryvtt(options?: FoundryVttOptions): Promise<Vite.Plug
         {
           pattern: ["**/*.yml", "**/*.yaml"],
           root: ".",
-          ignore: ["foundryconfig.*.yml", "foundryconfig.*.yaml", "src/**", "packs/**"],
+          ignore: [
+            "foundryconfig.yml",
+            "foundryconfig.*.yml",
+            "foundryconfig.yaml",
+            "foundryconfig.*.yaml",
+            "src/**",
+            "packs/**",
+            "pnpm-lock.yaml",
+          ],
           rename: "*.json",
           transform: replaceFileVars,
         },
@@ -85,88 +122,99 @@ export async function foundryvtt(options?: FoundryVttOptions): Promise<Vite.Plug
           transform: replaceFileVars,
         },
       ],
-      ignore: ["node_modules/**", "packs/**", "public/**", "static/**", "dist/**"],
-    }
+      ignore: [
+        "node_modules/**",
+        "packs/**",
+        "public/**",
+        "static/**",
+        "dist/**",
+        "FoundryVTT/**",
+        "yarn.lock",
+      ],
+    };
 
-    if (options === undefined || options === true) return defaultOptions
+    if (options === undefined || options === true) return defaultOptions;
 
     if (options === false) {
       return {
         ignore: "all",
         files: [],
-      }
+      };
     }
 
+    const ignore = (() => {
+      switch (options.ignore) {
+        case false:
+          return [];
+        case "all":
+          return "all";
+        default:
+          return [...defaultOptions.ignore, ...(options.ignore ?? [])];
+      }
+    })();
+
     return {
-      ...defaultOptions,
-      ...options,
-    }
+      root: root ?? options.root ?? defaultOptions.root,
+      files: [...defaultOptions.files, ...(options.files ?? [])],
+      ignore,
+    };
   }
 
   function replaceFileVars(content: string, filename: string) {
     for (const k in mappings) {
-      const re = new RegExp(`{{${k}}}`, "g")
-      const value = mappings[k]
+      const re = new RegExp(`{{${k}}}`, "g");
+      const value = mappings[k];
       if (value) {
-        content = content.replaceAll(re, value)
+        content = content.replaceAll(re, value);
       }
     }
-    const data = YAML.load(content, { filename, json: true })
-    return JSON.stringify(data, null, 2)
+    const data = YAML.load(content, { filename, json: true });
+    return JSON.stringify(data, null, 2);
   }
 }
 
 export function provide(): Vite.Plugin {
-  let config: Vite.ResolvedConfig
+  let config: Vite.ResolvedConfig;
   return {
     name: "vite:provide-src",
     apply: "serve",
     configResolved: async (configResolved: Vite.ResolvedConfig) => {
-      config = configResolved
+      config = configResolved;
     },
     configureServer: async (server: Vite.ViteDevServer) => {
-      const { middlewares } = server
+      const { middlewares } = server;
       return () => {
-        middlewares.use(provideDist(config))
+        middlewares.use(provideDist(config));
         //middlewares.use(provideSources(config))
-      }
+      };
     },
-  }
+  };
 
-  function provideDist(config: Vite.ResolvedConfig): Vite.Connect.NextHandleFunction {
-    return async (req: Vite.Connect.IncomingMessage, res: ServerResponse, next: Vite.Connect.NextFunction) => {
+  function provideDist(
+    config: Vite.ResolvedConfig
+  ): Vite.Connect.NextHandleFunction {
+    return async (
+      req: Vite.Connect.IncomingMessage,
+      res: ServerResponse,
+      next: Vite.Connect.NextFunction
+    ) => {
       try {
-        let pathname = decodeURI(req.originalUrl ?? "")
-        pathname = `${config.build.outDir}/${pathname.replace(config.base, "")}`
+        let pathname = decodeURI(req.originalUrl ?? "");
+        pathname = `${config.build.outDir}/${pathname.replace(
+          config.base,
+          ""
+        )}`;
 
-        if (!(await fse.exists(pathname))) return next()
+        if (!(await fse.exists(pathname))) return next();
 
-        const file = await fse.stat(pathname)
-        sendStatic(req, res, pathname, file)
+        const file = await fse.stat(pathname);
+        sendStatic(req, res, pathname, file);
       } catch (e) {
-        if (e instanceof Error) return next(e)
-        throw e
+        if (e instanceof Error) return next(e);
+        throw e;
       }
-    }
+    };
   }
-
-  ////function provideSources(config: Vite.ResolvedConfig): Vite.Connect.NextHandleFunction {
-  ////  return async (req: Vite.Connect.IncomingMessage, res: ServerResponse, next: Vite.Connect.NextFunction) => {
-  ////    try {
-  ////      let pathname = decodeURI(req.originalUrl ?? "")
-  ////      pathname = `${config.root}/${pathname.replace(config.base, "")}`
-
-  ////      if (!(await fse.exists(pathname))) return next()
-
-  ////      const file = await fse.stat(pathname)
-  ////      sendStatic(req, res, pathname, file)
-  ////    } catch (e) {
-  ////      if (e instanceof Error) return next(e)
-
-  ////      throw e
-  ////    }
-  ////  }
-  ////}
 
   function getStaticHeaders(stats: fse.Stats): OutgoingHttpHeaders {
     return {
@@ -174,61 +222,69 @@ export function provide(): Vite.Plugin {
       "Last-Modified": stats.mtime.toUTCString(),
       ETag: `W/"${stats.size}-${stats.mtime.getTime()}"`,
       "Cache-Control": "no-cache",
-    }
+    };
   }
 
-  function sendStatic(req: Vite.Connect.IncomingMessage, res: ServerResponse, file: string, stats: fse.Stats) {
-    const staticHeaders = getStaticHeaders(stats)
+  function sendStatic(
+    req: Vite.Connect.IncomingMessage,
+    res: ServerResponse,
+    file: string,
+    stats: fse.Stats
+  ) {
+    const staticHeaders = getStaticHeaders(stats);
     if (req.headers["if-none-match"] === staticHeaders["ETag"]) {
-      res.writeHead(304)
-      return res.end()
+      res.writeHead(304);
+      return res.end();
     }
 
-    let code = 200
-    const headers = getMergeHeaders(staticHeaders, res)
-    const opts: { start?: number; end?: number } = {}
+    let code = 200;
+    const headers = getMergeHeaders(staticHeaders, res);
+    const opts: { start?: number; end?: number } = {};
 
-    if (path.extname(file) === ".mjs" && headers["Content-Type"] !== "text/javascript") {
-      headers["Content-Type"] = "text/javascript"
+    if (
+      path.extname(file) === ".mjs" &&
+      headers["Content-Type"] !== "text/javascript"
+    ) {
+      headers["Content-Type"] = "text/javascript";
     }
 
     if (req.headers.range) {
-      code = 206
-      const [x, y] = req.headers.range.replace("bytes=", "").split("-")
-      let end = (y ? parseInt(y, 10) : 0) || stats.size - 1
-      const start = (x ? parseInt(x, 10) : 0) || 0
-      opts.end = end
-      opts.start = start
+      code = 206;
+      const [x, y] = req.headers.range.replace("bytes=", "").split("-");
+      let end = (y ? parseInt(y, 10) : 0) || stats.size - 1;
+      const start = (x ? parseInt(x, 10) : 0) || 0;
+      opts.end = end;
+      opts.start = start;
 
       if (end >= stats.size) {
-        end = stats.size - 1
+        end = stats.size - 1;
       }
 
       if (start >= stats.size) {
-        res.setHeader("Content-Range", `bytes */${stats.size}`)
-        res.statusCode = 416
-        return res.end()
+        res.setHeader("Content-Range", `bytes */${stats.size}`);
+        res.statusCode = 416;
+        return res.end();
       }
 
-      headers["Content-Range"] = `bytes ${start}-${end}/${stats.size}`
-      headers["Content-Length"] = end - start + 1
-      headers["Accept-Ranges"] = "bytes"
+      headers["Content-Range"] = `bytes ${start}-${end}/${stats.size}`;
+      headers["Content-Length"] = end - start + 1;
+      headers["Accept-Ranges"] = "bytes";
     }
 
-    res.writeHead(code, headers)
-    fse.createReadStream(file, opts).pipe(res)
+    res.writeHead(code, headers);
+    fse.createReadStream(file, opts).pipe(res);
   }
 }
 
 function getMergeHeaders(headers: OutgoingHttpHeaders, res: ServerResponse) {
-  headers = { ...headers }
+  headers = { ...headers };
   for (const key in headers) {
-    const tmp = res.getHeader(key)
-    if (tmp) headers[key] = tmp
+    const tmp = res.getHeader(key);
+    if (tmp) headers[key] = tmp;
   }
 
-  const contentTypeHeader = res.getHeader("content-type")
-  if (contentTypeHeader) headers["Content-Type"] = contentTypeHeader
+  const contentTypeHeader = res.getHeader("content-type");
+  if (contentTypeHeader) headers["Content-Type"] = contentTypeHeader;
 
-  return headers
+  return headers;
 }

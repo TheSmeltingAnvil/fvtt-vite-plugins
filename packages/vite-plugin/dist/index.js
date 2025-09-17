@@ -57,8 +57,9 @@ var YAML = __toESM(require("js-yaml"));
 var import_node_path = __toESM(require("path"));
 var mappings;
 async function foundryvtt(options) {
+  var _a, _b;
   const packageJson = await readFromPackageJson(".");
-  mappings = packageJson.foundry;
+  mappings = __spreadValues(__spreadValues({}, packageJson.foundry), (_b = (_a = options == null ? void 0 : options.replaceVars) == null ? void 0 : _a.mappings) != null ? _b : []);
   const message = "This file is for a running vite dev server and is not copied to a build";
   return [
     // Create required files.
@@ -70,8 +71,9 @@ async function foundryvtt(options) {
     (0, import_vite_plugin_create_file.createFile)({
       name: "index.mjs",
       contents: `/* ${message} */
-import './src/index.ts';
+import './index.ts';
 `
+      // REVIEW remove `src` when ??? (use root from options?)
     }),
     (0, import_vite_plugin_create_file.createFile)({
       name: "styles.css",
@@ -79,7 +81,9 @@ import './src/index.ts';
 `
     }),
     // Copy static files with reload if change.
-    ...(0, import_vite_plugin_copy_static_files.copyStaticFiles)(resolveCopyStaticFilesOptions(options == null ? void 0 : options.copyStaticFiles)),
+    ...(0, import_vite_plugin_copy_static_files.copyStaticFiles)(
+      resolveCopyStaticFilesOptions(options == null ? void 0 : options.root, options == null ? void 0 : options.copyStaticFiles)
+    ),
     // Allow importing JSON and YAML files in code.
     (0, import_vite_plugin_import_files.importJson)(),
     (0, import_vite_plugin_import_files.importYaml)(),
@@ -93,7 +97,8 @@ import './src/index.ts';
     const packageJson2 = await fse.readFile(filePath, "utf-8");
     return JSON.parse(packageJson2);
   }
-  function resolveCopyStaticFilesOptions(options2) {
+  function resolveCopyStaticFilesOptions(root, options2) {
+    var _a2, _b2;
     const defaultOptions = {
       files: [
         {
@@ -104,7 +109,15 @@ import './src/index.ts';
         {
           pattern: "**/*.json",
           root: ".",
-          ignore: ["package.json", "tsconfig.json", "tsconfig.*.json", "src/**"],
+          ignore: [
+            "package.json",
+            "package-lock.json",
+            "tsconfig.json",
+            "tsconfig.*.json",
+            "foundryconfig.json",
+            "foundryconfig.*.json",
+            "src/**"
+          ],
           transform: replaceFileVars
         },
         {
@@ -115,7 +128,15 @@ import './src/index.ts';
         {
           pattern: ["**/*.yml", "**/*.yaml"],
           root: ".",
-          ignore: ["foundryconfig.*.yml", "foundryconfig.*.yaml", "src/**", "packs/**"],
+          ignore: [
+            "foundryconfig.yml",
+            "foundryconfig.*.yml",
+            "foundryconfig.yaml",
+            "foundryconfig.*.yaml",
+            "src/**",
+            "packs/**",
+            "pnpm-lock.yaml"
+          ],
           rename: "*.json",
           transform: replaceFileVars
         },
@@ -126,7 +147,15 @@ import './src/index.ts';
           transform: replaceFileVars
         }
       ],
-      ignore: ["node_modules/**", "packs/**", "public/**", "static/**", "dist/**"]
+      ignore: [
+        "node_modules/**",
+        "packs/**",
+        "public/**",
+        "static/**",
+        "dist/**",
+        "FoundryVTT/**",
+        "yarn.lock"
+      ]
     };
     if (options2 === void 0 || options2 === true) return defaultOptions;
     if (options2 === false) {
@@ -135,7 +164,22 @@ import './src/index.ts';
         files: []
       };
     }
-    return __spreadValues(__spreadValues({}, defaultOptions), options2);
+    const ignore = (() => {
+      var _a3;
+      switch (options2.ignore) {
+        case false:
+          return [];
+        case "all":
+          return "all";
+        default:
+          return [...defaultOptions.ignore, ...(_a3 = options2.ignore) != null ? _a3 : []];
+      }
+    })();
+    return {
+      root: (_a2 = root != null ? root : options2.root) != null ? _a2 : defaultOptions.root,
+      files: [...defaultOptions.files, ...(_b2 = options2.files) != null ? _b2 : []],
+      ignore
+    };
   }
   function replaceFileVars(content, filename) {
     for (const k in mappings) {
@@ -169,7 +213,10 @@ function provide() {
       var _a;
       try {
         let pathname = decodeURI((_a = req.originalUrl) != null ? _a : "");
-        pathname = `${config2.build.outDir}/${pathname.replace(config2.base, "")}`;
+        pathname = `${config2.build.outDir}/${pathname.replace(
+          config2.base,
+          ""
+        )}`;
         if (!await fse.exists(pathname)) return next();
         const file = await fse.stat(pathname);
         sendStatic(req, res, pathname, file);
